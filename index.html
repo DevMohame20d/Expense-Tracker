@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظمي المالي المحترف</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; max-width: 500px; margin: auto; }
+        .stats { background: #007bff; color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; font-size: 1.2em; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-add { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .btn-reset { width: 100%; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; }
+        .del-btn { background: #dc3545; padding: 5px 10px; border-radius: 5px; font-size: 12px; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>💰 منظمي المالي</h2>
+    <div class="stats" id="total">الإجمالي: 0 دج</div>
+    
+    <input type="text" id="name" placeholder="ماذا صرفت؟ (مثلاً: قهوة)">
+    <input type="number" id="price" placeholder="المبلغ (دج)">
+    <select id="category">
+        <option value="طعام">طعام</option>
+        <option value="نقل">نقل</option>
+        <option value="دراسة">دراسة</option>
+        <option value="أخرى">أخرى</option>
+    </select>
+    
+    <button class="btn-add" onclick="add()">إضافة مصروف</button>
+    <div id="list" style="margin-top:20px;"></div>
+    
+    <button class="btn-reset" onclick="resetAll()">مسح جميع المصاريف</button>
+
+    <script>
+        function add() {
+            let n = document.getElementById('name').value;
+            let p = parseFloat(document.getElementById('price').value);
+            let c = document.getElementById('category').value;
+            let d = new Date().toLocaleDateString('ar-DZ'); // التاريخ
+            if(!n || !p) return alert("يرجى إدخال البيانات كاملة!");
+            
+            let data = JSON.parse(localStorage.getItem('expenses') || '[]');
+            data.push({name: n, price: p, category: c, date: d});
+            localStorage.setItem('expenses', JSON.stringify(data));
+            
+            document.getElementById('name').value = '';
+            document.getElementById('price').value = '';
+            render();
+        }
+
+        function remove(index) {
+            let data = JSON.parse(localStorage.getItem('expenses') || '[]');
+            data.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(data));
+            render();
+        }
+
+        function resetAll() {
+            if(confirm("هل أنت متأكد من مسح جميع البيانات؟")) {
+                localStorage.removeItem('expenses');
+                render();
+            }
+        }
+
+        function render() {
+            let data = JSON.parse(localStorage.getItem('expenses') || '[]');
+            let total = data.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('total').innerText = "إجمالي المصاريف: " + total + " دج";
+            document.getElementById('list').innerHTML = data.map((i, index) => 
+                `<div class="card">
+                    <div>
+                        <strong>${i.name}</strong> (${i.category})<br>
+                        <small style="color:gray;">${i.date} | ${i.price} دج</small>
+                    </div>
+                    <button class="del-btn" onclick="remove(${index})">حذف</button>
+                </div>`).join('');
+        }
+        render();
+    </script>
+</body>
+</html>
